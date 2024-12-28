@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMART HOME AUTOMATION SYSTEM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        /* Body Style */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Arial', sans-serif;
+            color: #333; /* Dark gray text */
+            overflow: hidden;
+        }
+
+        /* Video Background */
+        .bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1; /* Send the video behind other elements */
+        }
+
+        /* Header Section */
+        .header {
+            text-align: center;
+            padding: 50px 20px;
+            z-index: 2;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: bold;
+            color: #ffffff; /* White text for visibility */
+            margin-bottom: 15px;
+        }
+
+        .header p {
+            font-size: 18px;
+            color: #dddddd; /* Light gray text */
+        }
+
+        /* Form Container */
+        .form-container {
+            background: #2d2d2d; /* Dark gray */
+            color: #ffffff; /* White text for contrast */
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            margin: 50px auto;
+            z-index: 2;
+            position: relative;
+        }
+
+        .form-container h3 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #ffffff; /* White text */
+        }
+
+        /* Input Fields */
+        .form-container input {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 16px;
+            color: #ffffff; /* White text for contrast */
+        }
+
+        .form-container input:focus {
+            outline: none;
+            box-shadow: 0 0 10px #6c63ff; /* Soft lavender glow */
+        }
+
+        /* Button Styling */
+        .btn-primary {
+            background-color: #6c63ff; /* Dark lavender */
+            border: none;
+            color: #ffffff;
+            padding: 10px 20px;
+            font-size: 18px;
+            transition: 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #5145cd; /* Slightly darker lavender */
+            box-shadow: 0 4px 10px rgba(108, 99, 255, 0.5);
+        }
+
+        /* Link Styling */
+        .form-container a {
+            display: block;
+            text-align: center;
+            color: #ffffff;
+            margin-top: 10px;
+            text-decoration: none;
+        }
+
+        .form-container a:hover {
+            color: #6c63ff; /* Lavender */
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Video -->
+    <video class="bg-video" autoplay muted loop>
+        <source src="{{ url_for('static', filename='video3.mp4') }}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <!-- Header Section -->
+    <div class="header">
+        <h1>SMART HOME AUTOMATION SYSTEM</h1>
+        <p>Developed by Naina Gupta</p>
+        <p>Technology Stack: Python, Flask, Bootstrap, MongoDB</p>
+    </div>
+
+    <!-- Login Form -->
+    <div class="form-container">
+        <h3>Login Here</h3>
+        <form action="/fetch-user" method="post">
+            <div class="mb-3 mt-3">
+                <label for="email" class="form-label">Username:</label>
+                <input type="email" class="form-control" id="username" placeholder="Enter email" name="username" required>
+            </div>
+            <div class="mb-3">
+                <label for="pwd" class="form-label">Password:</label>
+                <input type="password" class="form-control" id="password" placeholder="Enter password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+        </form>
+        <a href="/register(project)">New User? Register Here</a>
+    </div>
+</body>
+</html>
