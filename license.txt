@@ -1,7 +1,0 @@
-Copyright (c) 2024 Naina Gupta
-
-All rights reserved.
-
-This software and associated documentation files (the "Software") are the property of the copyright holder. Unauthorized copying, modification, distribution, or use of this software, in whole or in part, is strictly prohibited without explicit permission from the copyright holder.
-
-For inquiries or permissions, please contact: [nainagupta9914@gmail.com].

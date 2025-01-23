@@ -1,0 +1,26 @@
+body{
+    background-color: rgb(123, 16, 16);
+}
+.wel{
+    text-align: center;
+    color: beige;
+
+}
+.container{
+    display: flex;
+    flex-direction: row;
+}
+.card{
+    margin: 10px;
+    width: 900px;
+}
+.footercontainer{
+    background-color:rgb(33, 37, 41);
+    height: 200px;
+    margin-top: 30px;
+}
+ .ph1{
+    padding-top: 50px;
+    padding-left: 500px;
+} 
+
