@@ -9,7 +9,7 @@
     <meta content="" name="description">
 
     <!-- Favicon -->
-    <link href="{{ url_for('static', filename='img/favicon.ico') }}" rel="icon">
+    <link href="{{ url_for('static', filename='img/logo.png') }}" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -58,7 +58,7 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="admin.html" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="/admin" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
 
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="far fa-file-alt me-2"></i>Manage Clubs</a>
@@ -75,8 +75,8 @@
                         </div>
                     </div>
 
-                    <a href="" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Elections</a>
-                    <a href="" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Result</a>
+                    
+                    <a href="{{ url_for('result_page') }}" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Result</a>
                     
 
                 </div>
@@ -114,7 +114,12 @@
                     <h6 class="mb-4">Update Candidate Information </h6>
                     <form action="{{ url_for('update_candidate', candidate_name=candidate['candidate_name']) }}" method="POST">
 
-
+                        <div class="row mb-3">
+                            <label for="postImage" class="col-sm-2 col-form-label">Upload Image</label>
+                            <div class="col-sm-10">
+                                <input type="file" class="form-control" id="postImage",name="image">
+                            </div>
+                        </div>
 
                         <div class="row mb-3">
                             <label for="Candidate_name" class="col-sm-2 col-form-label">Candidate Name</label>
@@ -123,7 +128,7 @@
                             </div>
                         </div>
                         
-                        
+                       
                         
                         <div class="row mb-3">
                             <label for="departmentSelect" class="col-form-label col-sm-2 pt-0">Department</label>
@@ -181,7 +186,7 @@
                             &copy; <a href="#">PCTE Club Elections</a>, All Right Reserved. 
                         </div>
                         <div class="col-12 col-sm-6 text-center text-sm-end">
-                            Designed By <a href="https://htmlcodex.com">HTML Codex</a>
+                        
                             <br>Distributed By: <a href="" target="_blank">PCTE</a>
                         </div>
                     </div>

@@ -4,16 +4,28 @@ from hashlib import sha256
 from session22C import MongoDBHelper  # Ensure this file is correctly imported
 from bson import ObjectId
 import json
-from flask_socketio import SocketIO 
+from flask_socketio import SocketIO
 from flask_socketio import emit
+import os
+from werkzeug.utils import secure_filename
+import random
 
 
+from cryptography.fernet import Fernet
 
 # Flask app setup
 web_app = Flask("PCTE Club Election")
 web_app.secret_key = 'your_secret_key_here'
-
 socketio = SocketIO(web_app)
+# Initialize Fernet with a secret key (Store this securely)
+key = Fernet.generate_key()
+cipher_suite = Fernet(key)
+
+
+web_app.config['UPLOAD_FOLDER'] = os.path.join(web_app.root_path, 'static/uploads')
+if not os.path.exists(web_app.config['UPLOAD_FOLDER']):
+    os.makedirs(web_app.config['UPLOAD_FOLDER'])
+
 
 # Database helper instance
 db_helper = MongoDBHelper()
@@ -90,6 +102,7 @@ def view_candidates():
 
     # Render the view_candidates.html template and pass the candidates data
     return render_template("view_candidates.html", candidates=candidates)
+
 
 
 
@@ -175,28 +188,53 @@ def dashboard():
     )
     return render_template('index.html', clubs=clubs)
 
+from flask_socketio import SocketIO, emit
+from flask import render_template, session, redirect
 
+# Initialize SocketIO
+socketio = SocketIO(web_app)
 
-
-
-
-# Admin Dashboard
 @web_app.route("/admin")
 def admin_dashboard():
     if session.get("role") == "admin":
-        # Fetch all users, clubs, and candidates using the fetch method
+        # Fetch all users, clubs, and candidates
         users = db_helper.fetch({}, "users")  # Fetch all users
         clubs = db_helper.fetch({}, "clubs")  # Fetch all clubs
         candidates = db_helper.fetch({}, "candidates")  # Fetch all candidates
         
-        # Render the admin page with the fetched data
+        # Fetch voting data
+        votes = db_helper.fetch({}, "votes")
+        
+        # Map club names to users
+        club_map = {club["_id"]: club["club_name"] for club in clubs}
+        for user in users:
+            user["club_name"] = club_map.get(user.get("club_id"), "No Club Assigned")
+        
+        # Group vote counts by position and candidate
+        voting_stats = {}
+        for candidate in candidates:
+            position = candidate["position"]
+            if position not in voting_stats:
+                voting_stats[position] = []
+            vote_count = sum(1 for vote in votes if vote["candidate_id"] == str(candidate["_id"]))
+            voting_stats[position].append({
+                "candidate_name": candidate["candidate_name"],
+                "votes": vote_count
+            })
+
+        # Render the admin page with fetched data and voting stats
         return render_template(
             "admin.html",
             users=users,
             clubs=clubs,
             candidates=candidates,
+            voting_stats=voting_stats,  # Send voting stats to the template
         )
     return redirect("/login")
+
+
+
+
 
 
 # Add User
@@ -306,13 +344,6 @@ def view_club():
 
     # Render the view_club.html template and pass the clubs data
     return render_template("view_club.html", clubs=clubs)
-
-
-
-
-
-
-
 # Update Club
 @web_app.route("/admin/update_club/<club_name>", methods=["GET", "POST"])
 def update_club(club_name):
@@ -355,64 +386,189 @@ def delete_club(club_name):
             return redirect("/admin")
     return redirect("/login")
 
-
-
-
 # Add Candidate
-
 @web_app.route("/admin/add_candidate", methods=["GET", "POST"])
 def add_candidate():
     if session.get("role") == "admin":
+        clubs = db_helper.fetch({}, "clubs")
+        club_names = [club["club_name"] for club in clubs]
+
         if request.method == "POST":
-            # Print to check if the POST request is actually being received
-            print("POST request received")
-            
-            # Retrieve form data for the candidate
             candidate_name = request.form.get("candidate_name")
             department = request.form.get("department")
             position = request.form.get("position")
-            club_name = request.form.get("club_name")  # Selected club
-            gender = request.form.get("gender")  # Gender selection
+            club_name = request.form.get("club_name")
+            gender = request.form.get("gender")
+            filename = None
 
-            # Print the values received
-            print(f"Received Data: {candidate_name}, {department}, {position}, {club_name}, {gender}")
-
-            # Ensure all fields are filled
             if not candidate_name or not department or not position or not club_name or not gender:
                 flash("All fields are required!", "danger")
                 return redirect("/admin/add_candidate")
 
-            # Prepare the candidate data
+            if 'image' in request.files:
+                file = request.files['image']
+                if file and file.filename:
+                    filename = secure_filename(file.filename)
+                    print(f"Uploading file: {filename}")  # Debugging line
+                    try:
+                        file.save(os.path.join(web_app.config['UPLOAD_FOLDER'], filename))
+                        print("File saved successfully!")
+                    except Exception as e:
+                        print("Error saving file:", e)
+
             candidate_data = {
                 "candidate_name": candidate_name,
                 "department": department,
                 "position": position,
                 "club_name": club_name,
-                "gender": gender
+                "gender": gender,
+                "image": filename or "default.jpg"
             }
 
-            # Debug: Check if the data is ready to be inserted
-            print(f"Inserting data into MongoDB: {candidate_data}")
-
-            # Insert data into MongoDB
             insert_result = db_helper.insert("candidates", candidate_data)
 
             if insert_result:
                 flash("Candidate added successfully!", "success")
-                return redirect("/admin")  # Redirect after successful insertion
+                return redirect("/admin")
             else:
                 flash("Failed to add candidate.", "danger")
                 return redirect("/admin/add_candidate")
 
-        # Fetch clubs for dropdown
-        clubs = db_helper.fetch({}, "clubs")
-        club_names = [club["club_name"] for club in clubs]
-
         return render_template("add_candidate.html", clubs=club_names)
 
+    flash("You are not authorized to access this page!", "danger")
+    return redirect("/")
+
+    
+@web_app.route("/index/vote/<candidate_id>", methods=["GET", "POST"])
+def vote(candidate_id):
+    if request.method == "POST":
+        # Your existing POST logic for handling votes
+        if session.get("role") == "user":
+            username = session.get("username")
+            club_name = session.get("club_name")
+            position = session.get("position")
+            candidate_name = session.get("candidate_name")
+
+            if not username:
+                flash("You need to log in to vote.", "danger")
+                return redirect("/login")
+
+            # Check if the user has already voted for this position
+            existing_vote = db_helper.find_one(
+                collection_name="votes",
+                query={"username": username, "position": position}
+            )
+
+            if existing_vote:
+                flash("You have already voted for this position.", "warning")
+                return redirect("/index")
+
+            # Encrypt the username
+            encrypted_username = cipher_suite.encrypt(username.encode()).decode()
+
+            # Store the vote in the database
+            vote_data = {
+                "candidate_id": candidate_id,
+                "username": encrypted_username,  # Store encrypted username
+                "club_name": club_name,
+                "position": position,
+                "candidate_name": candidate_name
+            }
+
+            db_helper.insert("votes", vote_data)
+            flash("Your vote has been recorded successfully!", "success")
+            # Emit the new vote event to all clients (admin dashboard)
+            socketio.emit('new_vote', {'candidate_id': candidate_id}, broadcast=True)
+
+            
+            # Redirect to the same page after vote submission
+            return redirect(url_for("vote", candidate_id=candidate_id))
+        else:
+            flash("Unauthorized access.", "danger")
+            return redirect("/login")
     else:
-        flash("You are not authorized to access this page!", "danger")
-        return redirect("/")
+        # Correctly access the collection using the db_helper
+        candidates = db_helper.db['candidates'].find()  # Corrected here
+
+        # Group candidates by position
+        candidates_by_position = {}
+        for candidate in candidates:
+            position = candidate.get("position")
+            if position not in candidates_by_position:
+                candidates_by_position[position] = []
+            candidates_by_position[position].append(candidate)
+
+        # Render the voting page with candidates grouped by position
+        return render_template("voting.html", candidate_id=candidate_id, candidates_by_position=candidates_by_position)
+
+@web_app.route("/admin/results", methods=["GET"])
+def result_page():
+    if session.get("role") != "admin":
+        flash("Unauthorized access.", "danger")
+        return redirect("/login")
+
+    # Aggregation pipeline to calculate votes and join candidate details
+    pipeline = [
+        {
+            "$group": {
+                "_id": "$candidate_id",
+                "total_votes": {"$sum": 1}  # Count votes for each candidate
+            }
+        },
+        {
+            "$lookup": {
+                "from": "candidates",  # Name of the candidates collection
+                "localField": "_id",  # Candidate ID in the votes collection
+                "foreignField": "_id",  # Candidate ID in the candidates collection
+                "as": "candidate_details"
+            }
+        },
+        {
+            "$unwind": "$candidate_details"  # Flatten the candidate details
+        },
+        {
+            "$project": {
+                "_id": 1,
+                "total_votes": 1,
+                "candidate_name": "$candidate_details.candidate_name",
+                "position": "$candidate_details.position",
+                "club_name": "$candidate_details.club_name"
+            }
+        }
+    ]
+
+    # Run the aggregation query
+    results = list(db_helper.db['votes'].aggregate(pipeline))
+
+    # Pass the results to the admin results template
+    return render_template("admin_results.html", results=results)
+
+
+
+# Route to view users in the admin panel
+@web_app.route("/view_users")
+def users():
+    # Fetch all users from the database using a helper function
+    users = get_users_from_db()
+
+    # Render the view_users.html template and pass the users data
+    return render_template("view_users.html", users=users)
+# Helper function to fetch users from the database
+# Helper function to fetch users from the database
+def get_users_from_db():
+    # Assuming you're using MongoDB, and db_helper.fetch() is fetching data from MongoDB
+    users_collection = db_helper.fetch({}, "users")  # Fetch the users from the 'users' collection
+    
+    # If db_helper.fetch() already returns a list of users, just return it
+    return users_collection
+
+
+
+
+
+
+
 
 @web_app.route("/admin/delete_candidate/<candidate_name>", methods=['GET', 'POST'])
 def delete_candidate(candidate_name):
@@ -487,8 +643,6 @@ def set_voting_status(status):
         db_helper.insert({"status_key": "voting", "status": status})
 
 
-
-
 # Helper Functions
 
 # Get candidates from the database (Dummy implementation)
@@ -500,20 +654,6 @@ def get_candidates_from_db():
     except Exception as e:
         print(f"Error fetching candidates: {e}")
         return []
-
-
-# Flask route for voting page
-@web_app.route("/voting")
-def voting_page():
-   pass
-@web_app.route('/admin/vote-toggle', methods=["POST"])
-def toggle_voting():
-   pass
-@web_app.route("/results", methods=["GET"])
-def results():
-    pass
-
-
 # Logout
 @web_app.route("/logout")
 def logout():

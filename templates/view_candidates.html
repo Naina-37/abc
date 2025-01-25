@@ -76,8 +76,8 @@
                             <a href="{{ url_for('add_candidate') }}" class="dropdown-item">Add Candidate</a>
                         </div>
                     </div>
-                    <a href="" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Elections</a>
-                    <a href="" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Result</a>
+                    
+                    <a href="{{ url_for('result_page') }}" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Result</a>
 
                 </div>
             </nav>
@@ -115,6 +115,7 @@
         <table class="table">
             <thead>
                 <tr>
+                    <th>Candidate Image</th>
                     <th>Candidate Name</th>
                     <th>Department</th>
                     <th>Position</th>
@@ -126,11 +127,18 @@
             <tbody>
                 {% for candidate in candidates %}
                     <tr>
+                        <td>
+                            <img src="{{ url_for('static', filename='uploads/' + (candidate.image or 'default.jpg')) }}" 
+                                 alt="Candidate Image" width="100">
+                        </td>
                         <td>{{ candidate.candidate_name }}</td>
+                    
+
                         <td>{{ candidate.department }}</td>
                         <td>{{ candidate.position }}</td>
                         <td>{{ candidate.club_name }}</td>
                         <td>{{ candidate.gender }}</td>
+                        
                         <td>
                             <!-- Update and Delete Buttons -->
                             <a href="{{ url_for('update_candidate', candidate_name=candidate.candidate_name) }}" class="btn btn-warning">Update</a>
@@ -164,15 +172,7 @@
        <!-- Sale & Revenue Start -->
        <div class="container-fluid pt-4 px-4">
         <div class="row g-4">
-            <div class="col-sm-6 col-xl-3">
-                <div class="bg-secondary rounded d-flex align-items-center justify-content-center p-4" style="height: 100px;">
-                    <i class="fa fa-chart-line fa-3x text-primary"></i>
-                    <div class="ms-3">
-                        <h4 class="mb-2">Clubs</h4>
-                        <p class="mb-0">Total number of Clubs 12</p>
-                    </div>
-                </div>
-            </div>
+            
             <div class="col-sm-6 col-xl-3">
                 <div class="bg-secondary rounded d-flex align-items-center justify-content-center p-4" style="height: 100px;">
                     <i class="fa fa-chart-bar fa-3x text-primary"></i>
@@ -199,7 +199,7 @@
                     &copy; <a href="#">PCTE Club Elections</a>, All Right Reserved.
                 </div>
                 <div class="col-12 col-sm-6 text-center text-sm-end">
-                    Designed By <a href="https://htmlcodex.com">HTML Codex</a>
+                    
                     <br>Distributed By: <a href="" target="_blank">PCTE</a>
                 </div>
             </div>
