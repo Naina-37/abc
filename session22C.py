@@ -30,7 +30,7 @@ class MongoDBHelper:
      except Exception as e:
         print(f"Error inserting document: {e}")
         return None
-
+    
     def fetch(self, query=None, collection_name=None):
         if query is None:
             query = {}

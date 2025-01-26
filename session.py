@@ -188,11 +188,7 @@ def dashboard():
     )
     return render_template('index.html', clubs=clubs)
 
-from flask_socketio import SocketIO, emit
-from flask import render_template, session, redirect
 
-# Initialize SocketIO
-socketio = SocketIO(web_app)
 
 @web_app.route("/admin")
 def admin_dashboard():
@@ -439,9 +435,81 @@ def add_candidate():
     flash("You are not authorized to access this page!", "danger")
     return redirect("/")
 
+@web_app.route("/admin/declare_result", methods=["GET", "POST"])
+def declare_result():
+    if session.get("role") == "admin":
+        clubs = db_helper.fetch({}, "clubs")
+        club_names = [club["club_name"] for club in clubs]
+        
+        if request.method == "POST":
+            candidate_name = request.form.get("candidate_name")
+            position = request.form.get("position")
+            vote_count = request.form.get("vote_count")
+            club_name = request.form.get("club_name")
+            filename = None
+
+            # Validate that all required fields are provided
+            if not candidate_name or not position or not vote_count or not club_name:
+                flash("All fields are required!", "danger")
+                return redirect("/admin/declare_result")
+
+            # Handle image upload
+            if 'image' in request.files:
+                file = request.files['image']
+                if file and file.filename:
+                    filename = secure_filename(file.filename)
+                    try:
+                        file.save(os.path.join(web_app.config['UPLOAD_FOLDER'], filename))
+                        print("File saved successfully!")
+                    except Exception as e:
+                        print("Error saving file:", e)
+
+            # Prepare candidate data for insertion into the database
+            candidate_data = {
+                "candidate_name": candidate_name,
+                "position": position,
+                "vote_count": int(vote_count),
+                "club_name": club_name,
+                "image": filename or "default.jpg"
+            }
+
+            # Insert the candidate data into the database
+            insert_result = db_helper.insert("candidates", candidate_data)
+
+            if insert_result:
+                flash("Results declared successfully!", "success")
+                return redirect("/admin")
+            else:
+                flash("Failed to declare results.", "danger")
+                return redirect("/admin/declare_result")
+
+        return render_template("declare_result.html", clubs=club_names)
+
+    flash("You are not authorized to access this page!", "danger")
+    return redirect("/")
+@web_app.route('/admin/view_declare_results', methods=["GET", "POST"])
+def view_declare_results():
+    if request.method == "POST":
+        action = request.form.get('action')
+        club_id = request.form.get('club_id')
+        
+        if action == "update":
+            updated_result = request.form.get('updated_result')
+            # Update the result in MongoDB
+            db_helper.clubs.update_one({'_id': ObjectId(club_id)}, {'$set': {'result': updated_result}})
+        
+        elif action == "delete":
+            # Delete the club's result from MongoDB
+            db_helper.db.clubs.delete_one({'_id': ObjectId(club_id)})
+        
+        return redirect(url_for('view_declare_results'))
     
-@web_app.route("/index/vote/<candidate_id>", methods=["GET", "POST"])
-def vote(candidate_id):
+    # Fetch all clubs from MongoDB
+    clubs = db_helper.clubs.find()  # Replace with the correct collection
+    return render_template("view_declare_results.html", clubs=clubs)
+  
+@web_app.route("/index/vote", methods=["GET", "POST"])
+def vote():
     if request.method == "POST":
         # Your existing POST logic for handling votes
         if session.get("role") == "user":
@@ -469,7 +537,7 @@ def vote(candidate_id):
 
             # Store the vote in the database
             vote_data = {
-                "candidate_id": candidate_id,
+                "candidate_id": request.form["candidate_id"],  # Get candidate_id from form
                 "username": encrypted_username,  # Store encrypted username
                 "club_name": club_name,
                 "position": position,
@@ -478,20 +546,16 @@ def vote(candidate_id):
 
             db_helper.insert("votes", vote_data)
             flash("Your vote has been recorded successfully!", "success")
-            # Emit the new vote event to all clients (admin dashboard)
-            socketio.emit('new_vote', {'candidate_id': candidate_id}, broadcast=True)
 
-            
-            # Redirect to the same page after vote submission
-            return redirect(url_for("vote", candidate_id=candidate_id))
+            return redirect("/index/vote")  # Redirect to the same page after vote submission
         else:
             flash("Unauthorized access.", "danger")
             return redirect("/login")
     else:
-        # Correctly access the collection using the db_helper
-        candidates = db_helper.db['candidates'].find()  # Corrected here
+        # Correctly access the collection using db_helper to get all candidates
+        candidates = db_helper.db['candidates'].find()  # Fetch all candidates
 
-        # Group candidates by position
+        # Group candidates by position (optional, depending on your use case)
         candidates_by_position = {}
         for candidate in candidates:
             position = candidate.get("position")
@@ -499,8 +563,8 @@ def vote(candidate_id):
                 candidates_by_position[position] = []
             candidates_by_position[position].append(candidate)
 
-        # Render the voting page with candidates grouped by position
-        return render_template("voting.html", candidate_id=candidate_id, candidates_by_position=candidates_by_position)
+        # Render the voting page with all candidates
+        return render_template("vote.html", candidates_by_position=candidates_by_position)
 
 @web_app.route("/admin/results", methods=["GET"])
 def result_page():
@@ -512,20 +576,20 @@ def result_page():
     pipeline = [
         {
             "$group": {
-                "_id": "$candidate_id",
+                "_id": "$candidate_id",  # Group by candidate_id in votes
                 "total_votes": {"$sum": 1}  # Count votes for each candidate
             }
         },
         {
             "$lookup": {
                 "from": "candidates",  # Name of the candidates collection
-                "localField": "_id",  # Candidate ID in the votes collection
-                "foreignField": "_id",  # Candidate ID in the candidates collection
+                "localField": "_id",  # Candidate ID in the votes collection (candidate_id)
+                "foreignField": "_id",  # Candidate ID in the candidates collection (_id)
                 "as": "candidate_details"
             }
         },
         {
-            "$unwind": "$candidate_details"  # Flatten the candidate details
+            "$unwind": "$candidate_details"  # Flatten the candidate details array
         },
         {
             "$project": {
@@ -541,8 +605,13 @@ def result_page():
     # Run the aggregation query
     results = list(db_helper.db['votes'].aggregate(pipeline))
 
+    # Debugging: Print results to check
+    print("Aggregation Results:", results)
+
     # Pass the results to the admin results template
     return render_template("admin_results.html", results=results)
+
+
 
 
 
@@ -562,7 +631,6 @@ def get_users_from_db():
     
     # If db_helper.fetch() already returns a list of users, just return it
     return users_collection
-
 
 
 
@@ -642,6 +710,16 @@ def set_voting_status(status):
         # Insert the voting status if it does not exist
         db_helper.insert({"status_key": "voting", "status": status})
 
+@web_app.route("/index/dashboard", methods=["GET"])
+def user_dashboard():
+    if session.get("role") == "user":
+        # Fetch all declared results (candidates) from the database
+        results = db_helper.fetch({}, "candidates")  # Fetch all candidates declared by the admin
+        
+        return render_template("user_dashboard.html", results=results)
+
+    flash("You are not authorized to access this page!", "danger")
+    return redirect("/")
 
 # Helper Functions
 

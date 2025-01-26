@@ -41,10 +41,10 @@
               <a class="nav-link" aria-current="page" href="/index"><i class="fas fa-home"></i> Home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/voting"><i class="fas fa-vote-yea"></i> Voting</a>
+              <a class="nav-link" href="{{ url_for('vote') }}"><i class="fas fa-vote-yea"></i> Voting</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#"><i class="fas fa-check-circle"></i> Check Results</a>
+                <a class="nav-link" href="{{ url_for('user_dashboard') }}"><i class="fas fa-check-circle"></i> Check Results</a>
               </li>
             <li class="nav-item">
               <a class="nav-link" href="/about"><i class="fas fa-info-circle"></i> About Us</a>

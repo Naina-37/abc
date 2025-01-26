@@ -59,7 +59,7 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="admin.html" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="/admin" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
 
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="far fa-file-alt me-2"></i>Manage Clubs</a>
@@ -83,6 +83,7 @@
                     
                     
                     <a href="{{ url_for('result_page') }}" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Result</a>
+                    <a href="{{ url_for('declare_result') }}" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Declare Results</a>
 
                 </div>
             </nav>
@@ -93,7 +94,7 @@
         <div class="content">
             <!-- Navbar Start -->
             <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
-                <a href="admin.html" class="navbar-brand d-flex d-lg-none me-4">
+                <a href="/admin" class="navbar-brand d-flex d-lg-none me-4">
                     <h2 class="text-primary mb-0"><i class="fa fa-user-edit"></i></h2>
                 </a>
                 <a href="#" class="sidebar-toggler flex-shrink-0">
@@ -120,8 +121,21 @@
 
             <div class="container mt-3 p-3">
                 <div class="card bg-secondary">
+                    <div class="card-body">
+                        <h5 class="card-title text-white">PCTE Club Election - Admin Panel</h5>
+                        <p class="card-text text-white">
+                            Welcome to the PCTE Club Election admin panel. Here, you can view the election results, track the progress of voting, and manage the candidates. This section provides an overview of the election process, which involves selecting the candidates for various positions in the club.
+                        </p>
+                        <p class="card-text text-white">
+                            The results are based on the votes cast by the students for different candidates, who are running for various positions within the club. As an admin, you can declare the official results once the voting process is complete.
+                        </p>
+                        <p class="card-text text-white">
+                            To view the results or manage the candidates, navigate through the options available in the sidebar. Make sure to monitor the election closely to ensure transparency and fairness in the process.
+                        </p>
+                    </div>
                 </div>
             </div>
+            
 
             <!-- Footer Start -->
             <div class="container-fluid pt-4 px-4">

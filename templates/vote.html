@@ -34,10 +34,16 @@
                 <div class="offcanvas-body">
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-3 me-lg-4">
                         <li class="nav-item"><a class="nav-link" aria-current="page" href="/index"><i class="fas fa-home"></i> Home</a></li>
-                        <li class="nav-item"><a class="nav-link active" href="/voting"><i class="fas fa-vote-yea"></i> Voting</a></li>
+                        <li class="nav-item"><a class="nav-link active" href="{{ url_for('vote') }}"><i class="fas fa-vote-yea"></i> Voting</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('user_dashboard') }}">
+                                <i class="fas fa-vote-yea"></i> Check Results
+                            </a></li>
                         <li class="nav-item"><a class="nav-link" href="/about"><i class="fas fa-info-circle"></i> About Us</a></li>
                         <li class="nav-item"><a class="nav-link" href="/contact"><i class="fas fa-envelope"></i> Contact us</a></li>
                         <li class="nav-item"><a class="nav-link" href="/login"><i class="fas fa-sign-out-alt"></i> Log Out</a></li>
+                        
+                            
                     </ul>
                 </div>
             </div>
@@ -71,10 +77,20 @@
                             <h5 class="card-title">{{ candidate.candidate_name }}</h5>
                             <p class="card-text"><strong>Department:</strong> {{ candidate.department }}</p>
                             <p class="card-text"><strong>Club Name:</strong> {{ candidate.club_name }}</p>
-                            <!-- Voting Form -->
-                            <form action="{{ url_for('vote', candidate_id=candidate['_id']) }}" method="POST">
+                            <p class="card-text"><strong>Gender:</strong> {{ candidate.gender }}</p>
+                            <p class="card-text"><strong>Position:</strong> {{ candidate.position }}</p>
+
+                            <form method="POST" action="/index/vote">
+                                <input type="hidden" name="candidate_id" value="{{ candidate._id }}">
+                                <input type="hidden" name="candidate_name" value="{{ candidate.candidate_name }}">
+                                <input type="hidden" name="position" value="{{ candidate.position }}">
+                                <input type="hidden" name="club_name" value="{{ candidate.club_name }}">
+                                <input type="hidden" name="department" value="{{ candidate.department }}">
+                                <input type="hidden" name="gender" value="{{ candidate.gender }}">
+                                <input type="hidden" name="image" value="{{ candidate.image }}">
+
                                 <button type="submit" class="btn btn-primary">Vote</button>
-                            </form>
+                            </form>    
                         </div>
                     </div>
                 </div>

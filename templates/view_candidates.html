@@ -43,9 +43,10 @@
 
 
         <!-- Sidebar Start -->
+        <!-- Sidebar Start -->
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
-                <a href="admin.html" class="navbar-brand mx-4 mb-3">
+                <a href="/admin" class="navbar-brand mx-4 mb-3">
                     <h3 class="text-primary"><i class="fa fa-user-edit me-2"></i>Club Elections System</h3>
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
@@ -76,7 +77,14 @@
                             <a href="{{ url_for('add_candidate') }}" class="dropdown-item">Add Candidate</a>
                         </div>
                     </div>
+                    <div class="nav-item">
+                        <a href="{{ url_for('users') }}" class="nav-item nav-link">
+                            <i class="fa fa-users me-2"></i>Users
+                        </a>
+                    </div>
                     
+                    <a href="{{ url_for('declare_result') }}" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Declare Results</a>
+
                     <a href="{{ url_for('result_page') }}" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Result</a>
 
                 </div>
