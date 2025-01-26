@@ -11,7 +11,15 @@
         .card:hover{
             transform: scale(1.05);
             transition: transform 0.5s;
-            background: #b02a37;
+            
+        }
+        .card:hover .card-body{
+            color: white;
+            background-color: #b02a37;
+        }
+        .card:hover button{
+            background-color: white;
+            color: #b02a37;
         }
     </style>
 </head>
@@ -19,7 +27,7 @@
 <body class="bg-danger text-white">
 
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-md bg-dark sticky-top">
+    <nav class="navbar navbar-dark navbar-expand-md bg-dark sticky-top">
         <div class="container-fluid mx-3 mx-lg-5">
             <a class="navbar-brand" href="#"><img src="{{ url_for('static', filename='assets/01.jpg') }}" alt="PCTE Logo" style="width: 60px;height: 60px;"><span class="d-none d-sm-inline">PCTE | Club Elections</span></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar">
@@ -65,12 +73,12 @@
 
         <!-- Display candidates grouped by position -->
         {% for position, candidates in candidates_by_position.items() %}
-        <div class="mt-5">
-            <h3 class="text-center text-primary">{{ position }}</h3>
+        <div class="mt-2">
+            <h3 class="text-center">{{ position }}</h3>
             <div class="row justify-content-center">
                 {% for candidate in candidates %}
                 <div class="col-md-4">
-                    <div class="card text-center shadow">
+                    <div class="card bg-dark text-center shadow">
                         <img src="{{ url_for('static', filename='uploads/' + (candidate.image or 'default.jpg')) }}" 
                              class="card-img-top" alt="Candidate Photo" style="max-height: 200px; object-fit: cover;">
                         <div class="card-body">
@@ -89,7 +97,7 @@
                                 <input type="hidden" name="gender" value="{{ candidate.gender }}">
                                 <input type="hidden" name="image" value="{{ candidate.image }}">
 
-                                <button type="submit" class="btn btn-primary">Vote</button>
+                                <button type="submit" class="btn btn-danger">Vote</button>
                             </form>    
                         </div>
                     </div>
